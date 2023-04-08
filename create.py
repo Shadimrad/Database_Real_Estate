@@ -47,7 +47,7 @@ class Listing(Base):
     status = Column(String, default='listed')
 
     agent = relationship('EstateAgent', back_populates='listings')
-    # sales = relationship('Sale', back_populates='listing')
+    # sales = relationship('Sale', uselist=False,back_populates='listing')
 
 class Sale(Base):
     __tablename__ = 'sales'
