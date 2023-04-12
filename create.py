@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, Float, Date, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import declarative_base
+
 
 Base = declarative_base()
 
@@ -77,3 +78,13 @@ class Commission(Base):
     agent_id = Column(Integer, ForeignKey('estate_agents.agent_id'))
     sale_id = Column(Integer, ForeignKey('sales.sale_id'))
     commission_amount = Column(Float)
+    commission_date = Column(Date)
+
+class MonthlyCommission(Base):
+    __tablename__ = 'monthly_commission'
+
+    monthly_commission_id = Column(Integer, primary_key=True)
+    agent_id = Column(Integer, ForeignKey('estate_agents.agent_id'))
+    year = Column(Integer)
+    month = Column(Integer)
+    total_commission = Column(Float)

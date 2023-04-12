@@ -4,122 +4,174 @@ from faker import Faker
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from create import Base, Office, EstateAgent, AgentOffice, Seller, Listing, Buyer, Sale, Commission
+from create import Base, Office, EstateAgent, AgentOffice, Seller, Listing, Buyer, Sale, Commission, MonthlyCommission
 
 fake = Faker()
 
-# Create the SQLite database and tables
-engine = create_engine("sqlite:///realestate.db", echo=True)
-Base.metadata.create_all(engine)
-
-Session = sessionmaker(bind=engine)
-session = Session()
-
-# Generate random data for Offices, EstateAgents, and AgentOffice
-for _ in range(10):
-    office = Office(
-        address=fake.street_address(),
-        city=fake.city(),
-        state=fake.state_abbr(),
-        zip_code=fake.zipcode(),
-    )
-    session.add(office)
-
-for _ in range(50):
-    agent = EstateAgent(
-        first_name=fake.first_name(),
-        last_name=fake.last_name(),
-        email=fake.email(),
-        phone=fake.phone_number(),
-    )
-    session.add(agent)
-
-session.commit()
-
-all_offices = session.query(Office).all()
-all_agents = session.query(EstateAgent).all()
-
-for agent in all_agents:
-    for _ in range(random.randint(1, 3)):
-        agent_office = AgentOffice(
-            agent_id=agent.agent_id,
-            office_id=random.choice(all_offices).office_id,
+def generate_offices(num_offices=100):
+    offices = []
+    for _ in range(num_offices):
+        office = Office(
+            address=fake.street_address(),
+            city=fake.city(),
+            state=fake.state_abbr(),
+            zip_code=fake.zipcode(),
         )
-        session.add(agent_office)
+        offices.append(office)
+    return offices
 
-session.commit()
+def generate_agents(session, num_agents=500):
+    agents = []
+    for _ in range(num_agents):
+        email=fake.email()
+        phone=fake.phone_number()
+        if session.query(EstateAgent).filter_by(email=email).first() or session.query(EstateAgent).filter_by(phone=phone).first():
+            continue
+        agent = EstateAgent(
+            first_name=fake.first_name(),
+            last_name=fake.last_name(),
+            email=email,
+            phone=phone,
+        )
+        agents.append(agent)
+    return agents
 
-# Inserting data for Listings
-for _ in range(100):
-    seller = Seller(
-        name=fake.name(),
-        email=fake.email(),
-        phone=fake.phone_number(),
-    )
-    session.add(seller)
+def generate_agent_offices(agents, offices):
+    agent_offices = []
+    for agent in agents:
+        for _ in range(random.randint(1, 3)):
+            agent_office = AgentOffice(
+                agent_id=agent.agent_id,
+                office_id=random.choice(offices).office_id,
+            )
+            agent_offices.append(agent_office)
+    return agent_offices
 
-    listing = Listing(
-        seller_id=seller.seller_id,
-        bedrooms=random.randint(1, 5),
-        bathrooms=random.randint(1, 4),
-        listing_price=random.uniform(50000, 2000000),
-        zip_code=fake.zipcode(),
-        date_of_listing=fake.date_between(start_date="-2y", end_date="today"),
-        agent_id=random.choice(all_agents).agent_id,
-        office_id=random.choice(all_offices).office_id,
-    )
-    session.add(listing)
-
-session.commit()
-
-all_listings = session.query(Listing).all()
-
-# Inserting data for Sales
-for listing in all_listings:
-    if random.random() < 0.6:  # Assuming 60% of the listings are sold
-        buyer = Buyer(
+def generate_listings_and_sellers(session, num_listings=1000, agents=None, offices=None):
+    listings = []
+    sellers = []
+    emails = set()
+    phones = set()
+    for _ in range(num_listings):
+        email = fake.email()
+        phone = fake.phone_number()
+        if session.query(Seller).filter_by(email=email).first() or session.query(Seller).filter_by(phone=phone).first():
+            continue
+        if email in emails or phone in phones:
+            continue
+        emails.add(email)
+        phones.add(phone)
+        seller = Seller(
             name=fake.name(),
-            email=fake.email(),
-            phone=fake.phone_number(),
+            email=email,
+            phone=phone,
         )
-        session.add(buyer)
-        session.flush()  # Get buyer_id assigned
+        sellers.append(seller)
 
-        sale_price = random.uniform(listing.listing_price * 0.9, listing.listing_price * 1.1)
-        date_of_sale = listing.date_of_listing + timedelta(days=random.randint(30, 180))
-
-        sale = Sale(
-            listing_id=listing.listing_id,
-            buyer_id=buyer.buyer_id,
-            sale_price=sale_price,
-            date_of_sale=date_of_sale,
-            agent_id=listing.agent_id,
+        listing = Listing(
+            seller_id=seller.seller_id,
+            bedrooms=random.randint(1, 5),
+            bathrooms=random.randint(1, 4),
+            listing_price=random.uniform(50000, 2000000),
+            zip_code=fake.zipcode(),
+            date_of_listing=fake.date_between(start_date="-2y", end_date="today"),
+            agent_id=random.choice(agents).agent_id,
+            office_id=random.choice(offices).office_id,
         )
-        session.add(sale)
-        session.flush()  # Get sale_id assigned
+        listings.append(listing)
+    return sellers, listings
 
-        # Calculate commission
-        if sale_price < 100000:
-            commission_rate = 0.1
-        elif sale_price < 200000:
-            commission_rate = 0.075
-        elif sale_price < 500000:
-            commission_rate = 0.06
-        elif sale_price < 1000000:
-            commission_rate = 0.05
-        else:
-            commission_rate = 0.04
+def generate_sales_and_commissions(listings, session):
+    sales = []
+    buyers = []
+    emails=set()
+    phones=set()
+    commissions = []
+    for listing in listings:
+        if random.random() < 0.6:  # Assuming 60% of the listings are sold
+            phone = fake.phone_number()
+            email = fake.email()
+            if session.query(Buyer).filter_by(email=email).first() or session.query(Buyer).filter_by(phone=phone).first():
+                continue
+            if email in emails or phone in phones:
+                continue
 
-        commission_amount = sale_price * commission_rate
+            buyer = Buyer(
+                name=fake.name(),
+                email=email,
+                phone=phone,
+            )
+            buyers.append(buyer)
 
-        commission = Commission(
-            agent_id=sale.agent_id,
-            sale_id=sale.sale_id,
-            commission_amount=commission_amount,
-        )
-        session.add(commission)
+            sale_price = random.uniform(listing.listing_price * 0.9, listing.listing_price * 1.1)
+            date_of_sale = listing.date_of_listing + timedelta(days=random.randint(30, 180))
 
-        # Mark the original listing as sold
-        listing.status = "sold"
+            sale = Sale(
+                listing_id=listing.listing_id,
+                buyer_id=buyer.buyer_id,
+                sale_price=sale_price,
+                date_of_sale=date_of_sale,
+                agent_id=listing.agent_id,
+            )
+            sales.append(sale)
 
-session.commit()
+            commission_rate = get_commission_rate(sale_price)
+            commission_amount = sale_price * commission_rate
+
+            commission = Commission(
+                agent_id=sale.agent_id,
+                sale_id=sale.sale_id,
+                commission_amount=commission_amount,
+                commission_date=date_of_sale,
+            )
+            commissions.append(commission)
+
+            listing.status = "sold"
+
+    return buyers, sales, commissions
+
+def get_commission_rate(sale_price):
+    if sale_price < 100000:
+        return 0.1
+    elif sale_price < 200000:
+        return 0.075
+    elif sale_price < 500000:
+        return 0.06
+    elif sale_price < 1000000:
+        return 0.05
+    else:
+        return 0.04
+
+def insert_data(session, data):
+    for item in data:
+        session.add(item)
+    session.commit()
+
+def main():
+    # Create the SQLite database and tables
+    engine = create_engine("sqlite:///realestate.db", echo=True)
+    Base.metadata.create_all(engine)
+
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    offices = generate_offices()
+    insert_data(session, offices)
+
+    agents = generate_agents(session)
+    insert_data(session, agents)
+
+    agent_offices = generate_agent_offices(agents, offices)
+    insert_data(session, agent_offices)
+
+    sellers, listings = generate_listings_and_sellers(session, agents=agents, offices=offices)
+    insert_data(session, sellers)
+    insert_data(session, listings)
+
+    buyers, sales, commissions = generate_sales_and_commissions(listings, session)
+    insert_data(session, buyers)
+    insert_data(session, sales)
+    insert_data(session, commissions)
+
+if __name__ == "__main__":
+    main()
