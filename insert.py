@@ -8,7 +8,7 @@ from create import Base, Office, EstateAgent, AgentOffice, Seller, Listing, Buye
 
 fake = Faker()
 
-def generate_offices(num_offices=100):
+def generate_offices(session, num_offices=100):
     offices = []
     for _ in range(num_offices):
         office = Office(
@@ -17,7 +17,7 @@ def generate_offices(num_offices=100):
             state=fake.state_abbr(),
             zip_code=fake.zipcode(),
         )
-        offices.append(office)
+        insert_data(session, [office])
     return offices
 
 def generate_agents(session, num_agents=500):
@@ -33,10 +33,10 @@ def generate_agents(session, num_agents=500):
             email=email,
             phone=phone,
         )
-        agents.append(agent)
+        insert_data(session, [agent])
     return agents
 
-def generate_agent_offices(agents, offices):
+def generate_agent_offices(session, agents, offices):
     agent_offices = []
     for agent in agents:
         for _ in range(random.randint(1, 3)):
@@ -44,7 +44,7 @@ def generate_agent_offices(agents, offices):
                 agent_id=agent.agent_id,
                 office_id=random.choice(offices).office_id,
             )
-            agent_offices.append(agent_office)
+            insert_data(session, [agent_office])
     return agent_offices
 
 def generate_listings_and_sellers(session, num_listings=1000, agents=None, offices=None):
@@ -66,7 +66,7 @@ def generate_listings_and_sellers(session, num_listings=1000, agents=None, offic
             email=email,
             phone=phone,
         )
-        sellers.append(seller)
+        insert_data(session, [seller])
 
         listing = Listing(
             seller_id=seller.seller_id,
@@ -78,10 +78,10 @@ def generate_listings_and_sellers(session, num_listings=1000, agents=None, offic
             agent_id=random.choice(agents).agent_id,
             office_id=random.choice(offices).office_id,
         )
-        listings.append(listing)
+        insert_data(session, [listing])
     return sellers, listings
 
-def generate_sales_and_commissions(listings, session):
+def generate_sales_and_commissions(session, listings):
     sales = []
     buyers = []
     emails=set()
@@ -95,13 +95,14 @@ def generate_sales_and_commissions(listings, session):
                 continue
             if email in emails or phone in phones:
                 continue
-
+            emails.add(email)
+            phones.add(phone)
             buyer = Buyer(
                 name=fake.name(),
                 email=email,
                 phone=phone,
             )
-            buyers.append(buyer)
+            insert_data(session, [buyer])
 
             sale_price = random.uniform(listing.listing_price * 0.9, listing.listing_price * 1.1)
             date_of_sale = listing.date_of_listing + timedelta(days=random.randint(30, 180))
@@ -113,7 +114,7 @@ def generate_sales_and_commissions(listings, session):
                 date_of_sale=date_of_sale,
                 agent_id=listing.agent_id,
             )
-            sales.append(sale)
+            insert_data(session, [sale])
 
             commission_rate = get_commission_rate(sale_price)
             commission_amount = sale_price * commission_rate
@@ -124,7 +125,7 @@ def generate_sales_and_commissions(listings, session):
                 commission_amount=commission_amount,
                 commission_date=date_of_sale,
             )
-            commissions.append(commission)
+            insert_data(session, [commission])
 
             listing.status = "sold"
 
@@ -155,23 +156,16 @@ def main():
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    offices = generate_offices()
-    insert_data(session, offices)
+    generate_offices(session)
 
-    agents = generate_agents(session)
-    insert_data(session, agents)
+    generate_agents(session)
+    offices = session.query(Office).all()
+    agents = session.query(EstateAgent).all()
 
-    agent_offices = generate_agent_offices(agents, offices)
-    insert_data(session, agent_offices)
-
-    sellers, listings = generate_listings_and_sellers(session, agents=agents, offices=offices)
-    insert_data(session, sellers)
-    insert_data(session, listings)
-
-    buyers, sales, commissions = generate_sales_and_commissions(listings, session)
-    insert_data(session, buyers)
-    insert_data(session, sales)
-    insert_data(session, commissions)
+    generate_agent_offices(session, agents, offices)
+    generate_listings_and_sellers(session, agents=agents, offices=offices)
+    listings = session.query(Listing).all()
+    generate_sales_and_commissions(session, listings)
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,6 @@
 from datetime import date
 from sqlalchemy import func, extract
-from create import Office, EstateAgent, Listing, Sale, Commission, MonthlyCommission
+from create import Base, Office, EstateAgent, Listing, Sale, Commission, MonthlyCommission
 
 def get_top_offices(session, year, month):
     top_offices = (
@@ -45,6 +45,7 @@ def get_average_selling_price(session, year, month):
     return average_selling_price
 
 def insert_monthly_commissions(session, year, month):
+    x = session.query(Commission).join(Sale, Sale.sale_id == Commission.sale_id).all()
     monthly_commissions = (
         session.query(
             Commission.agent_id,
@@ -67,11 +68,25 @@ def insert_monthly_commissions(session, year, month):
 
     session.commit()
 
+    return monthly_commissions
+
+def print_monthly_commissions(session, monthly_commissions):
+    print("\nMonthly Commissions:")
+    print("{:<10} {:<20} {:<20} {:<20}".format("Agent ID", "First Name", "Last Name", "Total Commission"))
+
+    for agent_id, total_commission in monthly_commissions:
+        agent = session.query(EstateAgent).filter(EstateAgent.agent_id == agent_id).one()
+        print("{:<10} {:<20} {:<20} ${:<20,.2f}".format(agent_id, agent.first_name, agent.last_name, total_commission))
+
+
 # Example usage
 if __name__ == "__main__":
     from sqlalchemy import create_engine
     from sqlalchemy.orm import sessionmaker
-    engine = create_engine("sqlite:///realestate.db", echo=True)
+    engine = create_engine("sqlite:///realestate.db")
+
+    # Create tables if they don't exist
+    Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
 
@@ -82,6 +97,9 @@ if __name__ == "__main__":
     top_agents = get_top_agents(session, current_year, current_month)
     average_days_on_market = get_average_days_on_market(session, current_year, current_month)
     average_selling_price = get_average_selling_price(session, current_year, current_month)
+    monthly_commissions = insert_monthly_commissions(session, current_year, current_month)
+    print_monthly_commissions(session, monthly_commissions)
+
 
     print("Top 5 Offices with the most sales for the month:")
     for office in top_offices:
@@ -93,3 +111,4 @@ if __name__ == "__main__":
 
     print(f"\nAverage number of days on the market: {average_days_on_market}")
     print(f"Average selling price: ${average_selling_price:,.2f}")
+    print_monthly_commissions(session, monthly_commissions)
