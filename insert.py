@@ -20,7 +20,7 @@ def generate_offices(session, num_offices=100):
         insert_data(session, [office])
     return offices
 
-def generate_agents(session, num_agents=500):
+def generate_agents(session, num_agents=50):
     agents = []
     for _ in range(num_agents):
         email=fake.email()
@@ -47,7 +47,7 @@ def generate_agent_offices(session, agents, offices):
             insert_data(session, [agent_office])
     return agent_offices
 
-def generate_listings_and_sellers(session, num_listings=1000, agents=None, offices=None):
+def generate_listings_and_sellers(session, num_listings=10000, agents=None, offices=None):
     listings = []
     sellers = []
     emails = set()
