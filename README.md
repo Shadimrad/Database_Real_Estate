@@ -63,7 +63,7 @@ The date_of_sale column is used in most queries. So, we create a first-order ind
 ```
 date_of_sale = Column(Date, index=True)
 ```
-Also, the Office and Listing tables are connected in ``the get_top_offices()`` query. So, we can create a first-order index on the ``office_id`` column in the Listing table:
+Also, the Office and Listing tables are connected in the ``get_top_offices()`` query. So, we can create a first-order index on the ``office_id`` column in the Listing table:
 
 ```
 office_id = Column(Integer, ForeignKey('offices.office_id'), index=True)
