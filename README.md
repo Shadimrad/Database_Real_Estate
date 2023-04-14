@@ -24,6 +24,23 @@ python3 queries.py
 python3 test.py
 ```
 ## Table Schema
+- Office: Represents the offices with columns: office_id (primary key), address, city, state, and zip_code.
+
+- EstateAgent: Represents the gents with columns: agent_id (primary key), first_name, last_name, email (unique), and phone (unique).
+
+- AgentOffice: Represents the relationship between the agents and offices with columns: agent_office_id (primary key), agent_id (foreign key to estate_agents.agent_id), and office_id (foreign key to offices.office_id).
+
+- Seller: Represents the house sellers with columns: seller_id (primary key), name, email (unique), and phone (unique).
+
+- Listing: Represents the house listings with columns: listing_id (primary key), seller_id (foreign key to sellers.seller_id), bedrooms, bathrooms, listing_price, zip_code, date_of_listing, agent_id (foreign key to estate_agents.agent_id), office_id (foreign key to offices.office_id), and status.
+
+- Buyer: Represents the house buyers with columns: buyer_id (primary key), name, email (unique), and phone (unique).
+
+- Sale: Represents the house sales with columns: sale_id (primary key), listing_id (foreign key to listings.listing_id), buyer_id (foreign key to buyers.buyer_id), sale_price, date_of_sale, and agent_id (foreign key to estate_agents.agent_id).
+
+- Commission: Represents the commissions received by agents with columns: commission_id (primary key), agent_id (foreign key to estate_agents.agent_id), sale_id (foreign key to sales.sale_id), commission_amount, and commission_date.
+
+- MonthlyCommission: Represents the monthly commissions for agents with columns: monthly_commission_id (primary key), agent_id (foreign key to estate_agents.agent_id), year, month, and total_commission.
 
 ## Indexing
 
