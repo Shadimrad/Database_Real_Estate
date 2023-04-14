@@ -78,9 +78,12 @@ Second-order indexing is not required because there are no queries with multiple
 
 
 ## Transactions
-
+Transactions are used so that a group of SQL operations get executed as an atomic unit of work. So, either all the operations are executed successfully or none. 
+- ``generate_listings_and_sellers()`` function
+    - the code is adding a seller and listing object to the session and if any error happens during this process, the transaction is rolled back. (to make sure that the database remains consistent and that partial changes are not committed.)
 
 ## Normalization
+
 ### First Normal Form (1NF):
 - Each table has a primary key
     - Office: office_id
