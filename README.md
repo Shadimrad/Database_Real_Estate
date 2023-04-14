@@ -44,7 +44,7 @@ python3 test.py
 
 ## Indexing
 
-To increase the performance of the queries that run every month, we should create suitable indexes for the database tables.
+To increase the performance of these queries that run every month, we should create suitable indexes for the database tables.
 
 Explanation:
 
