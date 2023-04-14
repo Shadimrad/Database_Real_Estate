@@ -53,7 +53,7 @@ def get_average_days_on_market(session, year, month):
     return: Average number of days on market
     """
     average_days_on_market = (
-        session.query(func.avg(Sale.date_of_sale - Listing.date_of_listing).label("average_days_on_market"))
+        session.query(func.avg(func.julianday(Sale.date_of_sale) - func.julianday(Listing.date_of_listing)).label("average_days_on_market"))
         .join(Listing, Listing.listing_id == Sale.listing_id)
         .filter(extract("year", Sale.date_of_sale) == year)
         .filter(extract("month", Sale.date_of_sale) == month)
@@ -98,6 +98,8 @@ def insert_monthly_commissions(session, year, month):
     ).all()
 
     for agent_id, total_commission in monthly_commissions:
+        if session.query(MonthlyCommission).filter(MonthlyCommission.agent_id == agent_id).filter(MonthlyCommission.year == year).filter(MonthlyCommission.month == month).count() > 0:
+            continue
         monthly_commission = MonthlyCommission(
             agent_id=agent_id,
             year=year,
@@ -144,7 +146,6 @@ if __name__ == "__main__":
     average_days_on_market = get_average_days_on_market(session, current_year, current_month)
     average_selling_price = get_average_selling_price(session, current_year, current_month)
     monthly_commissions = insert_monthly_commissions(session, current_year, current_month)
-    print_monthly_commissions(session, monthly_commissions)
 
 
     print("Top 5 Offices with the most sales for the month:")
