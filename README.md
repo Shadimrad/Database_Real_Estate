@@ -1,5 +1,28 @@
 # Database_Real_Estate
 
+## Usage Guide
+#### virtual env and required packages for Linux/Mac
+```
+python3 -m venv venv
+source venv/bin/activate
+pip3 install -r requirements.txt
+```
+##### virtual env and required packages for Windows
+```
+python3 -m venv venv
+venv\Scripts\activate
+pip3 install -r requirements.txt
+```
+#### Creating the Data Base, Insering fake data, Querying the data
+```
+python3 create.py
+python3 insert.py
+python3 queries.py
+```
+#### Running Tests
+```
+python3 test.py
+```
 ## Table Schema
 
 ## Indexing
