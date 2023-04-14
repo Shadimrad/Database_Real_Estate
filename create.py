@@ -6,6 +6,16 @@ from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 
 class Office(Base):
+    """
+    Office model
+    
+    Attributes:
+        office_id (int): Primary key
+        address (str): Street address
+        city (str): City
+        state (str): State
+        zip_code (str): Zip code
+    """
     __tablename__ = 'offices'
 
     office_id = Column(Integer, primary_key=True)
@@ -15,6 +25,16 @@ class Office(Base):
     zip_code = Column(String, index=True)
 
 class EstateAgent(Base):
+    """
+    Estate agent model
+    
+    Attributes:
+        agent_id (int): Primary key
+        first_name (str): First name
+        last_name (str): Last name
+        email (str): Email
+        phone (str): Phone number
+    """
     __tablename__ = 'estate_agents'
 
     agent_id = Column(Integer, primary_key=True)
@@ -24,6 +44,14 @@ class EstateAgent(Base):
     phone = Column(String, index=True ,unique=True)
 
 class AgentOffice(Base):
+    """
+    Agent office model
+    
+    Attributes:
+        agent_office_id (int): Primary key
+        agent_id (int): Foreign key to estate_agents.agent_id
+        office_id (int): Foreign key to offices.office_id
+    """
     __tablename__ = 'agent_office'
 
     agent_office_id = Column(Integer, primary_key=True)
@@ -31,6 +59,15 @@ class AgentOffice(Base):
     office_id = Column(Integer, ForeignKey('offices.office_id'))
 
 class Seller(Base):
+    """
+    Seller model
+    
+    Attributes:
+        seller_id (int): Primary key
+        name (str): Name
+        email (str): Email
+        phone (str): Phone number
+    """
     __tablename__ = 'sellers'
 
     seller_id = Column(Integer, primary_key=True)
@@ -39,6 +76,21 @@ class Seller(Base):
     phone = Column(String, index=True, unique=True)
 
 class Listing(Base):
+    """
+    Listing model
+    
+    Attributes:
+        listing_id (int): Primary key
+        seller_id (int): Foreign key to sellers.seller_id
+        bedrooms (int): Number of bedrooms
+        bathrooms (int): Number of bathrooms
+        listing_price (float): Listing price
+        zip_code (str): Zip code
+        date_of_listing (date): Date of listing
+        agent_id (int): Foreign key to estate_agents.agent_id
+        office_id (int): Foreign key to offices.office_id
+        status (str): Status of listing
+    """
     __tablename__ = 'listings'
 
     listing_id = Column(Integer, primary_key=True)
@@ -54,6 +106,15 @@ class Listing(Base):
 
 
 class Buyer(Base):
+    """
+    Buyer model
+    
+    Attributes:
+        buyer_id (int): Primary key
+        name (str): Name
+        email (str): Email
+        phone (str): Phone number
+    """
     __tablename__ = 'buyers'
 
     buyer_id = Column(Integer, primary_key=True)
@@ -62,6 +123,17 @@ class Buyer(Base):
     phone = Column(String, index=True, unique=True)
 
 class Sale(Base):
+    """
+    Sale model
+    
+    Attributes:
+        sale_id (int): Primary key
+        listing_id (int): Foreign key to listings.listing_id
+        buyer_id (int): Foreign key to buyers.buyer_id
+        sale_price (float): Sale price
+        date_of_sale (date): Date of sale
+        agent_id (int): Foreign key to estate_agents.agent_id
+    """
     __tablename__ = 'sales'
 
     sale_id = Column(Integer, primary_key=True)
@@ -72,6 +144,16 @@ class Sale(Base):
     agent_id = Column(Integer, ForeignKey('estate_agents.agent_id'), index=True)
 
 class Commission(Base):
+    """
+    Commission model
+    
+    Attributes:
+        commission_id (int): Primary key
+        agent_id (int): Foreign key to estate_agents.agent_id
+        sale_id (int): Foreign key to sales.sale_id
+        commission_amount (float): Commission amount
+        commission_date (date): Date of commission
+    """
     __tablename__ = 'commissions'
 
     commission_id = Column(Integer, primary_key=True)
@@ -81,6 +163,16 @@ class Commission(Base):
     commission_date = Column(Date)
 
 class MonthlyCommission(Base):
+    """
+    Monthly commission model
+    
+    Attributes:
+        monthly_commission_id (int): Primary key
+        agent_id (int): Foreign key to estate_agents.agent_id
+        year (int): Year
+        month (int): Month
+        total_commission (float): Total commission
+    """
     __tablename__ = 'monthly_commission'
 
     monthly_commission_id = Column(Integer, primary_key=True)

@@ -9,6 +9,13 @@ from create import Base, Office, EstateAgent, AgentOffice, Seller, Listing, Buye
 fake = Faker()
 
 def generate_offices(session, num_offices=100):
+    """
+    Generate a number of offices and insert them into the database.
+    
+    param session: SQLAlchemy session
+    param num_offices: Number of offices to generate
+    return: List of generated offices
+    """
     offices = []
     for _ in range(num_offices):
         office = Office(
@@ -21,6 +28,13 @@ def generate_offices(session, num_offices=100):
     return offices
 
 def generate_agents(session, num_agents=50):
+    """
+    Generate a number of agents and insert them into the database.
+    
+    param session: SQLAlchemy session
+    param num_agents: Number of agents to generate
+    return: List of generated agents
+    """
     agents = []
     for _ in range(num_agents):
         email=fake.email()
@@ -37,6 +51,14 @@ def generate_agents(session, num_agents=50):
     return agents
 
 def generate_agent_offices(session, agents, offices):
+    """
+    Generate agent offices and insert them into the database.
+    
+    param session: SQLAlchemy session
+    param agents: List of agents
+    param offices: List of offices
+    return: List of generated agent offices
+    """
     agent_offices = []
     for agent in agents:
         for _ in range(random.randint(1, 3)):
@@ -48,6 +70,15 @@ def generate_agent_offices(session, agents, offices):
     return agent_offices
 
 def generate_listings_and_sellers(session, num_listings=10000, agents=None, offices=None):
+    """
+    Generate listings and sellers and insert them into the database.
+    
+    param session: SQLAlchemy session
+    param num_listings: Number of listings to generate
+    param agents: List of agents
+    param offices: List of offices
+    return: List of generated sellers and listings
+    """
     listings = []
     sellers = []
     emails = set()
@@ -82,6 +113,13 @@ def generate_listings_and_sellers(session, num_listings=10000, agents=None, offi
     return sellers, listings
 
 def generate_sales_and_commissions(session, listings):
+    """
+    Generate sales and commissions and insert them into the database.
+    
+    param session: SQLAlchemy session
+    param listings: List of listings
+    return: List of generated buyers, sales, and commissions
+    """
     sales = []
     buyers = []
     emails=set()
@@ -132,6 +170,12 @@ def generate_sales_and_commissions(session, listings):
     return buyers, sales, commissions
 
 def get_commission_rate(sale_price):
+    """
+    Get the commission rate based on the sale price.
+    
+    param sale_price: Sale price
+    return: Commission rate
+    """
     if sale_price < 100000:
         return 0.1
     elif sale_price < 200000:
@@ -144,11 +188,21 @@ def get_commission_rate(sale_price):
         return 0.04
 
 def insert_data(session, data):
+    """
+    Insert data into the database.
+    
+    param session: SQLAlchemy session
+    param data: Data to insert
+    return: None
+    """
     for item in data:
         session.add(item)
     session.commit()
 
 def main():
+    """
+    Main function for running the script.
+    """
     # Create the SQLite database and tables
     engine = create_engine("sqlite:///realestate.db", echo=True)
     Base.metadata.create_all(engine)

@@ -1,0 +1,10 @@
+cached-property==1.5.2
+Faker==18.4.0
+inflection==0.5.1
+mypy-extensions==1.0.0
+python-dateutil==2.8.2
+six==1.16.0
+SQLAlchemy==2.0.9
+sqlalchemy-orm==1.2.5
+typing-inspect==0.8.0
+typing_extensions==4.5.0

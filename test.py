@@ -8,20 +8,29 @@ from queries import get_top_offices, get_top_agents, get_average_days_on_market,
 class TestMainFunctions(unittest.TestCase):
 
     def setUp(self):
-        self.engine = create_engine("sqlite:///:memory:")
-        Base.metadata.create_all(self.engine)
-        Session = sessionmaker(bind=self.engine)
+        """
+        Set up the database and create sample data.
+        """
+        self.engine = create_engine("sqlite:///:memory:") # Create an in-memory database
+        Base.metadata.create_all(self.engine) # Create all tables
+        Session = sessionmaker(bind=self.engine) # Create a session
         self.session = Session()
 
         # Create sample data and add it to the session
         self.create_sample_data()
 
     def tearDown(self):
-        self.session.close()
-        Base.metadata.drop_all(self.engine)
-        self.engine.dispose()
+        """
+        Close the session and drop all tables.
+        """
+        self.session.close() # Close the session
+        Base.metadata.drop_all(self.engine) # Drop all tables
+        self.engine.dispose() # Dispose of the engine
 
     def create_sample_data(self):
+        """
+        Create sample data.
+        """
         offices = [
             Office(office_id=1, address="Address 1", city="City 1", state="State 1", zip_code="ZipCode1"),
             Office(office_id=2, address="Address 2", city="City 2", state="State 2", zip_code="ZipCode2"),
@@ -129,17 +138,23 @@ class TestMainFunctions(unittest.TestCase):
 
 
     def test_get_top_offices(self):
+        """
+        Test that the get_top_offices function returns the correct output for the given input
+        """
         top_offices = get_top_offices(self.session, date.today().year, date.today().month)
         expected_output = [(6, 'City 6', 'State 6', 4),
                            (2, 'City 2', 'State 2', 4),
                            (1, 'City 1', 'State 1', 4),
                            (4, 'City 4', 'State 4', 2),
                            (5, 'City 5', 'State 5', 1)]
-        self.assertEqual(top_offices, expected_output)
+        self.assertEqual(top_offices, expected_output) # Check that the output is correct based on the data
 
     def test_get_top_agents(self):
+        """
+        Test that the get_top_agents function returns the correct output for the given input
+        """
         top_agents = get_top_agents(self.session, date.today().year, date.today().month)
-        # Extract agent_id and second element of each tuple in the top_agents list
+        # Extract agent_id of each tuple of agent_id and the numebr of sales in the top_agents list
         top_agents_ids = [agent[0].agent_id for agent in top_agents]
         expected_output = [2,1,3,4]
         self.assertEqual(top_agents_ids, expected_output)
@@ -147,16 +162,25 @@ class TestMainFunctions(unittest.TestCase):
 
 
     def test_get_average_days_on_market(self):
+        """
+        Test that the get_average_days_on_market function returns the correct output for the given input
+        """
         average_days_on_market = get_average_days_on_market(self.session, date.today().year, date.today().month)
         expected_output = 0.0
         self.assertEqual(average_days_on_market, expected_output)
 
     def test_get_average_selling_price(self):
+        """
+        Test that the get_average_selling_price function returns the correct output for the given input
+        """
         average_selling_price = get_average_selling_price(self.session, date.today().year, date.today().month)
         expected_output = 565625.0
         self.assertEqual(average_selling_price, expected_output)
 
     def test_insert_monthly_commissions(self):
+        """
+        Test that the insert_monthly_commissions function returns the correct output for the given input
+        """
         monthly_commissions = insert_monthly_commissions(self.session, date.today().year, date.today().month)
         expected_output = [
             (1, 23400.0), (2, 29100.0), (3, 52600.0)

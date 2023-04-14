@@ -3,6 +3,14 @@ from sqlalchemy import func, extract
 from create import Base, Office, EstateAgent, Listing, Sale, Commission, MonthlyCommission
 
 def get_top_offices(session, year, month):
+    """
+    Get the top 5 offices by number of sales in a given month and year.
+    
+    param session: SQLAlchemy session
+    param year: Year
+    param month: Month
+    return: List of top offices
+    """
     top_offices = (
         session.query(Office.office_id, Office.city, Office.state, func.count(Sale.sale_id).label("sales_count"))
         .join(Listing, Listing.office_id == Office.office_id)
@@ -16,6 +24,14 @@ def get_top_offices(session, year, month):
     return top_offices
 
 def get_top_agents(session, year, month):
+    """
+    Get the top 5 agents by number of sales in a given month and year.
+    
+    param session: SQLAlchemy session
+    param year: Year
+    param month: Month
+    return: List of top agents
+    """
     top_agents = (
         session.query(EstateAgent, func.count(Sale.sale_id).label("sales_count"))
         .join(Sale, Sale.agent_id == EstateAgent.agent_id)
@@ -28,6 +44,14 @@ def get_top_agents(session, year, month):
     return top_agents
 
 def get_average_days_on_market(session, year, month):
+    """
+    Get the average number of days a listing is on the market before it is sold in a given month and year.
+    
+    param session: SQLAlchemy session
+    param year: Year
+    param month: Month
+    return: Average number of days on market
+    """
     average_days_on_market = (
         session.query(func.avg(Sale.date_of_sale - Listing.date_of_listing).label("average_days_on_market"))
         .join(Listing, Listing.listing_id == Sale.listing_id)
@@ -37,6 +61,14 @@ def get_average_days_on_market(session, year, month):
     return average_days_on_market
 
 def get_average_selling_price(session, year, month):
+    """
+    Get the average selling price of a home in a given month and year.
+    
+    param session: SQLAlchemy session
+    param year: Year
+    param month: Month
+    return: Average selling price
+    """
     average_selling_price = (
         session.query(func.avg(Sale.sale_price).label("average_selling_price"))
         .filter(extract("year", Sale.date_of_sale) == year)
@@ -45,6 +77,14 @@ def get_average_selling_price(session, year, month):
     return average_selling_price
 
 def insert_monthly_commissions(session, year, month):
+    """
+    Insert monthly commissions into the MonthlyCommission table.
+    
+    param session: SQLAlchemy session
+    param year: Year
+    param month: Month
+    return: List of monthly commissions
+    """
     x = session.query(Commission).join(Sale, Sale.sale_id == Commission.sale_id).all()
     monthly_commissions = (
         session.query(
@@ -71,6 +111,12 @@ def insert_monthly_commissions(session, year, month):
     return monthly_commissions
 
 def print_monthly_commissions(session, monthly_commissions):
+    """"
+    Print monthly commissions.
+    
+    param session: SQLAlchemy session
+    param monthly_commissions: List of monthly commissions
+    """
     print("\nMonthly Commissions:")
     print("{:<10} {:<20} {:<20} {:<20}".format("Agent ID", "First Name", "Last Name", "Total Commission"))
 
